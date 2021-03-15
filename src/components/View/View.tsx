@@ -42,11 +42,13 @@ let scrollsCache: ViewsScrolls = {};
 
 const swipeBackExcludedTags = ['input', 'textarea'];
 
+export type TransitionParams = { from: string; to: string };
+
 export interface ViewProps extends HTMLAttributes<HTMLElement>, HasPlatform {
   activePanel: string;
   popout?: ReactNode;
   modal?: ReactNode;
-  onTransition?(params: { isBack: boolean; from: string; to: string }): void;
+  onTransition?(params: TransitionParams & { isBack: boolean }): void;
   /**
    * callback свайпа назад
    */
@@ -60,6 +62,7 @@ export interface ViewProps extends HTMLAttributes<HTMLElement>, HasPlatform {
    */
   onSwipeBackCancel?(): void;
   history?: string[];
+  isBackCheck?(params: TransitionParams): boolean;
   id?: string;
   /**
    * @ignore
@@ -150,11 +153,16 @@ class View extends Component<ViewProps & DOMProps, ViewState> {
 
     // Нужен переход
     if (prevProps.activePanel !== this.props.activePanel && !prevState.swipingBack && !prevState.browserSwipe) {
-      const firstLayer = this.panels.find(
-        (panel) => panel.props.id === prevProps.activePanel || panel.props.id === this.props.activePanel,
-      );
+      let isBack = false;
 
-      const isBack = firstLayer && firstLayer.props.id === this.props.activePanel;
+      if (this.props.isBackCheck) {
+        isBack = this.props.isBackCheck({ from: prevProps.activePanel, to: this.props.activePanel });
+      } else {
+        const firstLayer = this.panels.find(
+          (panel) => panel.props.id === prevProps.activePanel || panel.props.id === this.props.activePanel,
+        );
+        isBack = firstLayer && firstLayer.props.id === this.props.activePanel;
+      }
 
       this.blurActiveElement();
 
@@ -468,13 +476,29 @@ class View extends Component<ViewProps & DOMProps, ViewState> {
     const hasPopout = !!popout;
     const hasModal = !!modal;
 
-    const panels = this.panels.filter((panel: React.ReactElement) => {
-      const panelId = panel.props.id;
+    const panels = this.panels
+      .filter((panel) => {
+        const panelId = panel.props.id;
 
-      return this.state.visiblePanels.includes(panelId) ||
-        panelId === swipeBackPrevPanel ||
-        panelId === swipeBackNextPanel;
-    });
+        return this.state.visiblePanels.includes(panelId) ||
+          panelId === swipeBackPrevPanel ||
+          panelId === swipeBackNextPanel;
+      })
+      .sort((panel) => {
+        const panelId = panel.props.id;
+        const isPrevPanel = panelId === prevPanel || panelId === swipeBackPrevPanel;
+        const isNextPanel = panelId === nextPanel || panelId === swipeBackNextPanel;
+
+        if (isNextPanel) {
+          return this.state.swipingBack || this.state.isBack ? -1 : 1;
+        }
+
+        if (isPrevPanel) {
+          return this.state.swipingBack || this.state.isBack ? 1 : -1;
+        }
+
+        return 0;
+      });
 
     const disableAnimation = this.shouldDisableTransitionMotion();
 
