@@ -2,6 +2,7 @@
   "node": "14",
   "installCommand": "codesandbox:install",
   "sandboxes": [
-    "vkui-default-example-b7kyy"
+    "vkui-default-example-b7kyy",
+    "vigilant-blackburn-q2w0i"
   ]
 }
