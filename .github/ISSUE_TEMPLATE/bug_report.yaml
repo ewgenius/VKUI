@@ -39,7 +39,7 @@ body:
         - Windows
         - Linux
   - type: dropdown
-    id: Браузеры
+    id: browsers
     attributes:
       label: В каких браузерах воспроизводится проблема?
       multiple: true
