@@ -4,3 +4,4 @@ styleguide/
 docs/
 *.test.js
 src/vkui.js
+scripts
