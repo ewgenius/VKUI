@@ -27,9 +27,9 @@ body:
     validations:
       required: true
   - type: dropdown
-    id: OS/Device
+    id: os
     attributes:
-      label: На какой операционной системе
+      label: Операционная система
       multiple: true
       options:
         - iOS
